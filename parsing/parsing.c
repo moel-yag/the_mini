@@ -102,7 +102,7 @@ t_ast *parser(const char *input)
     while (tokens && tokens->type != TOKEN_EOF)
     {
         // t_token *temp = tokens;
-        printf("- %-20s\t %s\n", ft_token_gettype(tokens->type), tokens->value);
+        // printf("- %-20s\t %s\n", ft_token_gettype(tokens->type), tokens->value);
         tokens = tokens->next;
     }
     t_ast *ast = NULL;

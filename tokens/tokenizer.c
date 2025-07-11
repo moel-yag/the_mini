@@ -171,17 +171,18 @@ char *ft_token_gettype(t_token_type type)
 
 void print_tokens(t_token *tokens)
 {
-	t_token *current = tokens;
-	int i = 0;
-	if (!current)
-	{
-		printf("No tokens to display.\n");
-		return;
-	}
-	while (current)
-	{
-		printf("Token[%d]: Type: %20s : value : %s, in_quote: %d\n", i++,
-			ft_token_gettype(current->type), current->value, current->is_quoted);
-		current = current->next;
-	}
+	(void)tokens; // Suppress unused parameter warning
+	// t_token *current = tokens;
+	// int i = 0;
+	// if (!current)
+	// {
+	// 	printf("No tokens to display.\n");
+	// 	return;
+	// }
+	// while (current)
+	// {
+	// 	printf("Token[%d]: Type: %20s : value : %s, in_quote: %d\n", i++,
+	// 		ft_token_gettype(current->type), current->value, current->is_quoted);
+	// 	current = current->next;
+	// }
 }

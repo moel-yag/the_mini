@@ -162,13 +162,13 @@ void expand(t_env *env, t_token *token)
     {
         if (current->type == TOKEN_WORD)
         {
-            printf("Expanding token: %s\n", current->value); // Debug output
+            // printf("Expanding token: %s\n", current->value); // Debug output
             char *expanded = expand_arg(current->value, env, current);
             if (expanded)
             {
                 free(current->value); // Free the old value
                 current->value = expanded; // Assign the new expanded value
-                printf("Expanded token: %s\n", current->value); // Debug output
+                // printf("Expanded token: %s\n", current->value); // Debug output
             }
         }
         current = current->next; // Move to the next token
