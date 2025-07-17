@@ -1,6 +1,7 @@
 #include "../includes/minishell2.h"
 #include "../includes/minishell.h"
 #include "../includes/parsing.h"
+#include "../includes/expansion.h"
 
 // char * ft_token_gettype(t_token_type type);
 t_ast *create_ast_node(void)
@@ -79,8 +80,19 @@ void free_ast(t_ast *ast)
         ft_lstclear(&ast->args, free);
 
     // Free linked redirections list 
-    if (ast->redirections)
-        ft_lstclear(&ast->redirections, free);
+    if (ast->redirections) {
+        t_list *curr = ast->redirections;
+        while (curr) {
+            t_redir *redir = (t_redir *)curr->content;
+            if (redir) {
+                if (redir->filename)
+                    free(redir->filename);
+                free(redir);
+            }
+            curr = curr->next;
+        }
+        ft_lstclear(&ast->redirections, NULL); // Don't double free content
+    }
 
     // Recursively free next nodes
     if (ast->next)
@@ -102,7 +114,7 @@ t_ast *parser(const char *input)
     while (tokens && tokens->type != TOKEN_EOF)
     {
         // t_token *temp = tokens;
-        // printf("- %-20s\t %s\n", ft_token_gettype(tokens->type), tokens->value);
+        printf("- %-20s\t %s\n", ft_token_gettype(tokens->type), tokens->value);
         tokens = tokens->next;
     }
     t_ast *ast = NULL;
@@ -126,20 +138,22 @@ t_ast *parser(const char *input)
         {
             if (current->next && current->next->type == TOKEN_WORD)
             {
-                // t_redir *redir = malloc(sizeof(t_redir));
-                // if (!redir)
-                //     return NULL; // Handle memory allocation failure
-                // redir->type = current->type; // Set the type of redirection
-                // Set the filename for the redirection
-                current->value = current->next->value; // Get the filename from the next token
-                // char *redirection = current->next->value;
-                ft_lst_push(&curr->redirections, current);
+                t_redir *redir = malloc(sizeof(t_redir));
+                if (!redir)
+                {
+                    if (ast)
+                        free_ast(ast);
+                    free_tokens(tokens);
+                    return NULL;
+                }
+                redir->type = current->type;
+                redir->filename = ft_strdup(current->next->value); // For heredoc, this is the delimiter
+                ft_lst_push(&curr->redirections, redir);
                 current = current->next; // Skip the next word as it's already processed
             }
             else
             {
-                ft_lst_push(&curr->redirections, current->value);
-                printf("Redirection without target%s\n", current->value);
+                // Error: redirection without target
                 if (ast)
                     free_ast(ast);
                 free_tokens(tokens);
