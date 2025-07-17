@@ -130,10 +130,10 @@ int	execute_command(t_execute *exec, char **full_command, t_list *redirections, 
                 t_list *redir = redirections;
                 while (redir)
                 {
-                    t_token *token = (t_token *)redir->content;
-                    if (token->type == TOKEN_REDIRECT_IN)
+                    t_redir *redir_info = (t_redir *)redir->content;
+                    if (redir_info->type == TOKEN_REDIRECT_IN)
                     {
-                        int fd = open(token->value, O_RDONLY);
+                        int fd = open(redir_info->filename, O_RDONLY);
                         if (fd < 0)
                         {
                             perror("Open input redirection failed");
@@ -144,10 +144,10 @@ int	execute_command(t_execute *exec, char **full_command, t_list *redirections, 
                         dup2(fd, STDIN_FILENO);
                         close(fd);
                     }
-                    else if (token->type == TOKEN_REDIRECT_OUT || token->type == TOKEN_APPEND)
+                    else if (redir_info->type == TOKEN_REDIRECT_OUT || redir_info->type == TOKEN_APPEND)
                     {
-                        int flags = O_WRONLY | O_CREAT | (token->type == TOKEN_APPEND ? O_APPEND : O_TRUNC);
-                        int fd = open(token->value, flags, 0644);
+                        int flags = O_WRONLY | O_CREAT | (redir_info->type == TOKEN_APPEND ? O_APPEND : O_TRUNC);
+                        int fd = open(redir_info->filename, flags, 0644);
                         if (fd < 0)
                         {
                             perror("Open output redirection failed");
@@ -157,6 +157,33 @@ int	execute_command(t_execute *exec, char **full_command, t_list *redirections, 
                         }
                         dup2(fd, STDOUT_FILENO);
                         close(fd);
+                    }
+                    else if (redir_info->type == TOKEN_HEREDOC)
+                    {
+                        int pipefd[2];
+                        if (pipe(pipefd) == -1)
+                        {
+                            perror("pipe");
+                            exit(EXIT_FAILURE);
+                        }
+                        char *line = NULL;
+                        size_t len = 0;
+                        ssize_t nread;
+                        while (1)
+                        {
+                            line = readline("heredoc> ");
+                            if (!line || ft_strcmp(line, redir_info->filename) == 0)
+                            {
+                                free(line);
+                                break;
+                            }
+                            write(pipefd[1], line, ft_strlen(line));
+                            write(pipefd[1], "\n", 1);
+                            free(line);
+                        }
+                        close(pipefd[1]);
+                        dup2(pipefd[0], STDIN_FILENO);
+                        close(pipefd[0]);
                     }
                     redir = redir->next;
                 }
