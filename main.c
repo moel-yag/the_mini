@@ -40,6 +40,7 @@ int main(int ac, char **av, char **env)
 	int 		value;
 
 	value = 0;
+	cmd = NULL;
 	signal(SIGINT, handle_sigint);
 	signal(SIGQUIT, handle_sigquit);
 	(void)av;
